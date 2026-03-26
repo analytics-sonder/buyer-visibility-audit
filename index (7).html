@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Global Buyer Visibility Audit | Sonder Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --blue:#0A66C2; --navy:#001935; --purple:#6B46C1;
+  --white:#FFFFFF; --green:#0A8A5A; --orange:#E67E22; --red:#e74c3c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 50% at 80% 10%,rgba(107,70,193,.12) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 40% at 10% 80%,rgba(10,102,194,.10) 0%,transparent 70%)}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,25,53,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;letter-spacing:3px;color:var(--blue);text-transform:uppercase}
+.prog-pill{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;color:rgba(255,255,255,.4)}
+.prog-track{width:120px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(107,70,193,.15);border:1px solid rgba(107,70,193,.35);color:#a78bfa;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 18px;border-radius:40px;margin-bottom:32px;animation:fadeUp .6s ease both}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#a78bfa;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hero h1{font-family:'Poppins',sans-serif;font-size:clamp(36px,6vw,68px);font-weight:800;line-height:1.1;margin-bottom:24px;animation:fadeUp .7s .1s ease both}
+.hero h1 em{font-style:normal;color:var(--purple)}
+.hero p{font-size:clamp(16px,2vw,20px);color:rgba(255,255,255,.5);max-width:520px;line-height:1.65;margin-bottom:48px;animation:fadeUp .7s .2s ease both}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap;justify-content:center;margin-bottom:56px;animation:fadeUp .7s .3s ease both}
+.hero-stat{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:40px;padding:10px 20px}
+.hero-stat-icon{font-size:16px;line-height:1}
+.hero-stat-label{font-size:13px;font-weight:600;color:rgba(255,255,255,.65)}
+.btn-start{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;background:var(--blue);color:var(--white);border:none;border-radius:14px;padding:18px 48px;cursor:pointer;transition:all .2s;animation:fadeUp .7s .4s ease both;position:relative;overflow:hidden}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(10,102,194,.4)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* QUIZ */
+#quiz{display:none;position:relative;z-index:1;min-height:100vh;padding-top:72px}
+.q-stage{max-width:720px;margin:0 auto;padding:60px 24px 120px}
+
+/* CARD ANIMATIONS */
+.q-card{display:none}
+.q-card.active{display:block;animation:slideIn .4s cubic-bezier(.4,0,.2,1) both}
+.q-card.exit-left{animation:slideOutLeft .3s cubic-bezier(.4,0,.2,1) both}
+.q-card.exit-right{animation:slideOutRight .3s cubic-bezier(.4,0,.2,1) both}
+.q-card.enter-right{display:block;animation:slideIn .4s cubic-bezier(.4,0,.2,1) both}
+.q-card.enter-left{display:block;animation:slideInLeft .4s cubic-bezier(.4,0,.2,1) both}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@keyframes slideOutLeft{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-40px)}}
+@keyframes slideOutRight{from{opacity:1;transform:none}to{opacity:0;transform:translateX(40px)}}
+
+/* QUESTION */
+.q-meta{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.q-num{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purple)}
+.q-dim{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase}
+.q-dim::before{content:'·';margin-right:12px}
+.q-text{font-family:'Poppins',sans-serif;font-size:clamp(20px,3vw,28px);font-weight:700;line-height:1.25;color:var(--white);margin-bottom:36px}
+
+/* OPTIONS */
+.opts{display:flex;flex-direction:column;gap:12px}
+.opts.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.opts.grid-2{grid-template-columns:1fr}}
+
+.opt{position:relative;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);border-radius:14px;padding:18px 20px;cursor:pointer;transition:border-color .2s,background .2s,transform .15s;user-select:none;-webkit-tap-highlight-color:transparent;overflow:hidden}
+.opt:hover{border-color:rgba(10,102,194,.5);background:rgba(10,102,194,.07);transform:translateY(-1px)}
+.opt.selected{border-color:var(--blue);background:rgba(10,102,194,.14)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt-inner{display:flex;align-items:center;gap:14px}
+.opt-check{width:22px;height:22px;border-radius:6px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transform:scale(.6);transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
+.opt-check svg{width:13px;height:13px}
+.opt.selected .opt-check{opacity:1;transform:scale(1)}
+.opt-radio{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.opt-radio-dot{width:8px;height:8px;border-radius:50%;background:var(--white);opacity:0;transform:scale(0);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.opt.selected .opt-radio{background:var(--blue);border-color:var(--blue)}
+.opt.selected .opt-radio-dot{opacity:1;transform:scale(1)}
+.opt-label{font-size:15px;font-weight:600;color:var(--white);line-height:1.35}
+
+/* RIPPLE */
+.ripple{position:absolute;border-radius:50%;background:rgba(10,102,194,.2);transform:scale(0);animation:ripple .5s linear;pointer-events:none}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+
+/* OTHER INPUT */
+.other-wrap{margin-top:12px}
+.other-input{width:100%;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.14);border-radius:12px;padding:14px 16px;font-family:'Inter',sans-serif;font-size:14px;color:var(--white);outline:none;transition:border-color .2s,background .2s}
+.other-input::placeholder{color:rgba(255,255,255,.25)}
+.other-input:focus{border-color:rgba(107,70,193,.5);background:rgba(107,70,193,.06)}
+
+/* NAV */
+.q-nav{display:flex;justify-content:space-between;align-items:center;margin-top:36px}
+.btn-back{font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;padding:12px 0;transition:color .2s}
+.btn-back:hover{color:var(--white)}
+.btn-next{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--white);background:var(--blue);border:none;border-radius:12px;padding:14px 32px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-next:hover{background:#0854a8;transform:translateY(-1px);box-shadow:0 8px 24px rgba(10,102,194,.35)}
+.err-msg{margin-top:10px;font-size:13px;color:var(--red);display:none}
+.err-msg.show{display:block}
+
+/* CONTACT */
+#contact{display:none;position:relative;z-index:1;padding-top:72px}
+.contact-card{max-width:620px;margin:0 auto;padding:60px 24px 120px}
+.contact-card h2{font-family:'Poppins',sans-serif;font-size:clamp(24px,4vw,34px);font-weight:800;margin-bottom:10px}
+.contact-card p{color:rgba(255,255,255,.4);font-size:15px;line-height:1.6;margin-bottom:36px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;font-family:'Inter',sans-serif;font-size:15px;color:var(--white);outline:none;transition:border-color .2s,background .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);background:rgba(10,102,194,.07)}
+.field select option{background:#001935}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:480px){.two-col{grid-template-columns:1fr}}
+.btn-submit{width:100%;font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;color:var(--white);background:linear-gradient(135deg,var(--purple),#5b35a8);border:none;border-radius:14px;padding:18px;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(107,70,193,.4)}
+
+/* LOADING */
+#loading{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,25,53,.95);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:24px}
+#loading.show{display:flex}
+.load-ring{width:56px;height:56px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-wrap{position:relative;height:28px;width:320px;text-align:center}
+.load-step{font-size:15px;font-weight:600;color:var(--white);opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;position:absolute;left:0;right:0}
+.load-step.show{opacity:1;transform:none}
+.load-sub{font-size:13px;color:rgba(255,255,255,.25);margin-top:40px}
+
+/* REPORT */
+#report{display:none;position:relative;z-index:1}
+.report-inner{max-width:800px;margin:0 auto;padding:100px 24px 80px}
+.rpt-header{background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:48px;margin-bottom:24px;position:relative;overflow:hidden}
+.rpt-header::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(107,70,193,.18) 0%,transparent 70%)}
+.rpt-tag{display:inline-block;background:rgba(107,70,193,.15);border:1px solid rgba(107,70,193,.3);color:#a78bfa;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:20px}
+.rpt-company{font-family:'Poppins',sans-serif;font-size:clamp(22px,4vw,36px);font-weight:800;margin-bottom:6px}
+.rpt-sub{font-size:14px;color:rgba(255,255,255,.35);margin-bottom:36px}
+.score-wrap{display:flex;align-items:center;gap:36px;flex-wrap:wrap}
+.score-ring{position:relative;width:140px;height:140px;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-num{font-family:'Poppins',sans-serif;font-size:38px;font-weight:800;line-height:1}
+.score-den{font-size:13px;color:rgba(255,255,255,.3)}
+.score-info{flex:1;min-width:180px}
+.score-grade{font-family:'Poppins',sans-serif;font-size:30px;font-weight:800;margin-bottom:8px}
+.score-verdict{font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;max-width:380px}
+.dims-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.dim-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px}
+.dim-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-bottom:10px}
+.dim-val{font-family:'Poppins',sans-serif;font-size:30px;font-weight:800;line-height:1;margin-bottom:10px}
+.dim-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.dim-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.dim-status{font-size:11px;font-weight:700}
+.finding{border-left:3px solid var(--blue);background:rgba(255,255,255,.03);border-radius:0 12px 12px 0;padding:20px 24px;margin-bottom:14px}
+.finding.critical{border-color:var(--red)} .finding.moderate{border-color:var(--orange)} .finding.strong{border-color:var(--green)}
+.finding-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.finding-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700}
+.pill{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.pill-critical{background:rgba(231,76,60,.15);color:var(--red)}
+.pill-moderate{background:rgba(230,126,34,.15);color:var(--orange)}
+.pill-strong{background:rgba(10,138,90,.15);color:#2ecc71}
+.finding-body{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
+.finding-action{margin-top:10px;font-size:13px;color:var(--blue);font-weight:600}
+.action-table{width:100%;border-collapse:collapse;font-size:14px}
+.action-table th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.07)}
+.action-table td{padding:14px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.7);vertical-align:top}
+.action-table tr:last-child td{border:none}
+.impact-high{color:var(--red);font-weight:700} .impact-med{color:var(--orange);font-weight:700} .impact-low{color:#2ecc71;font-weight:700}
+.effort-tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.4)}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:32px 36px;margin-bottom:20px}
+.card-title{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.cta-card{background:linear-gradient(135deg,rgba(107,70,193,.15),rgba(10,102,194,.10));border:1px solid rgba(107,70,193,.22);border-radius:18px;padding:48px;text-align:center;margin-top:28px}
+.cta-card h3{font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;margin-bottom:12px}
+.cta-card p{font-size:15px;color:rgba(255,255,255,.5);max-width:420px;margin:0 auto 28px;line-height:1.6}
+.btn-cta{font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;background:linear-gradient(135deg,var(--purple),#5b35a8);color:var(--white);border:none;border-radius:12px;padding:16px 36px;cursor:pointer;transition:all .2s}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(107,70,193,.4)}
+
+/* TOAST */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(10,138,90,.15);border:1px solid rgba(10,138,90,.3);color:#2ecc71;font-size:13px;font-weight:600;padding:12px 20px;border-radius:40px;opacity:0;transition:all .3s;z-index:300;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div class="topbar">
+  <div class="logo">SONDER DIGITAL</div>
+  <div class="prog-pill">
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <span id="pLabel"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- HERO -->
+<div id="hero" class="hero">
+  <div class="hero-badge">Manufacturer Diagnostic</div>
+  <h1>Are you <em>invisible</em><br>to global buyers?</h1>
+  <p>A 6-minute precision audit that reveals exactly where your marketing is losing export deals — and what to fix first.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-icon">⚡</span><div class="hero-stat-label">Pinpoint exactly where buyers are dropping off</div></div>
+    <div class="hero-stat"><span class="hero-stat-icon">📊</span><div class="hero-stat-label">Benchmarked against 200+ global manufacturers</div></div>
+    <div class="hero-stat"><span class="hero-stat-icon">🎯</span><div class="hero-stat-label">A prioritised action plan — not generic advice</div></div>
+  </div>
+  <button class="btn-start" onclick="startAudit()">Start My Audit →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz">
+  <div class="q-stage" id="qStage"></div>
+</div>
+
+<!-- CONTACT -->
+<div id="contact">
+  <div class="contact-card">
+    <h2>One last step.</h2>
+    <p>Your answers have been scored across 5 dimensions. Tell us where to send your personalised report.</p>
+    <div class="two-col">
+      <div class="field"><label>First name *</label><input id="fname" placeholder="Rajesh"/></div>
+      <div class="field"><label>Last name *</label><input id="lname" placeholder="Kumar"/></div>
+    </div>
+    <div class="field"><label>Company *</label><input id="company" placeholder="Precision Industries Pvt. Ltd."/></div>
+    <div class="field"><label>Work email *</label><input id="email" type="email" placeholder="rajesh@company.com"/></div>
+    <div class="field">
+      <label>Your role</label>
+      <select id="role">
+        <option value="">Select role</option>
+        <option>Managing Director / CEO</option>
+        <option>Sales Director / VP Sales</option>
+        <option>Marketing Manager</option>
+        <option>Business Development</option>
+        <option>Export Manager</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Biggest export challenge <span style="opacity:.4;font-weight:400;text-transform:none">(optional)</span></label>
+      <textarea id="challenge" rows="3" placeholder="e.g. We get directory enquiries but struggle to reach US/EU buyers directly…" style="resize:vertical"></textarea>
+    </div>
+    <div class="err-msg" id="err-contact">Please fill in all required fields with a valid email.</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+      <button class="btn-back" onclick="backToQuiz()" style="padding:12px 0">← Back</button>
+      <button class="btn-submit" onclick="submitAudit()">Generate My Report →</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-ring"></div>
+  <div class="load-wrap">
+    <div class="load-step" id="ls0">Scoring your responses…</div>
+    <div class="load-step" id="ls1">Benchmarking against 200+ manufacturers…</div>
+    <div class="load-step" id="ls2">Building your 90-day action plan…</div>
+    <div class="load-step" id="ls3">Finalising your report…</div>
+  </div>
+  <div class="load-sub">This takes about 3 seconds</div>
+</div>
+
+<!-- REPORT -->
+<div id="report">
+  <div class="report-inner">
+    <div class="rpt-header">
+      <div class="rpt-tag">Confidential Audit · Sonder Digital</div>
+      <div class="rpt-company" id="rptCompany"></div>
+      <div class="rpt-sub" id="rptSub"></div>
+      <div class="score-wrap">
+        <div class="score-ring">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle cx="70" cy="70" r="58" fill="none" id="ringArc" stroke="#0A66C2" stroke-width="10" stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+          </svg>
+          <div class="score-ring-text"><div class="score-num" id="rptScore">0</div><div class="score-den">/ 100</div></div>
+        </div>
+        <div class="score-info">
+          <div class="score-grade" id="rptGrade"></div>
+          <div class="score-verdict" id="rptVerdict"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Dimension Breakdown</div><div class="dims-grid" id="dimGrid"></div></div>
+    <div class="card"><div class="card-title">Key Findings</div><div id="findingsWrap"></div></div>
+    <div class="card">
+      <div class="card-title">90-Day Priority Action Plan</div>
+      <table class="action-table"><thead><tr><th>#</th><th>Action</th><th>Impact</th><th>Effort</th><th>Timeline</th></tr></thead><tbody id="actionBody"></tbody></table>
+    </div>
+    <div class="cta-card">
+      <h3>Ready to fix these gaps?</h3>
+      <p>Book a free 30-minute strategy call with Sonder Digital. We'll walk through your findings and build a clear plan.</p>
+      <a href="https://sonderdigital.com/strategy-call" target="_blank"><button class="btn-cta">Book Your Free Strategy Call →</button></a>
+    </div>
+    <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.18);margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.05)">
+      Report generated by <a href="https://sonderdigital.com" style="color:var(--blue);text-decoration:none">Sonder Digital</a> · Confidential
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyhzeOXFmSXkV4Y3GgqliMMs4EqUrIRVGzSWk5JiXuuMP8twTHpVBrKgz0uHVg-dTx0jw/exec';
+
+const QUESTIONS = [
+  { id:'sector', dim:'Company Profile', multi:false, text:'What does your company manufacture?', layout:'grid-2', opts:[
+    {v:'medical',l:'Medical Devices',s:0},{v:'oem',l:'OEM / Auto Ancillary',s:0},
+    {v:'industrial',l:'Industrial Equipment',s:0},{v:'electronics',l:'Electronics / EMS',s:0},
+    {v:'pharma',l:'Pharma / Chemicals',s:0},{v:'other',l:'Other Manufacturing',s:0}]},
+  { id:'revenue', dim:'Company Profile', multi:false, text:'How do you primarily reach new customers today?', opts:[
+    {v:'referral_only',l:'Mostly referrals and repeat business — inbound is rare',s:0},
+    {v:'tradeshow_led',l:'Trade shows and physical networking are our primary source',s:1},
+    {v:'mixed',l:'Mix of offline and some digital — inconsistent inbound',s:2},
+    {v:'digital_led',l:'Digital channels generate consistent, qualified enquiries',s:4}]},
+  { id:'markets', dim:'Company Profile', multi:true, text:'Which markets are you actively trying to win buyers in?', layout:'grid-2', opts:[
+    {v:'us',l:'🇺🇸 United States',s:0},{v:'eu',l:'🇩🇪 Europe',s:0},
+    {v:'me',l:'🇦🇪 Middle East',s:0},{v:'apac',l:'🌏 APAC',s:0},
+    {v:'domestic',l:'🇮🇳 Domestic India only',s:0}]},
+  { id:'website', dim:'Digital Presence', multi:true, text:'When a procurement manager visits your website, what can they actually do?', opts:[
+    {v:'understand',l:'Instantly understand what we make and who we supply',s:3},
+    {v:'creds',l:'Verify our certifications and compliance (ISO, CE, FDA…)',s:3},
+    {v:'proof',l:'See proof — client logos, case studies, or process videos',s:3},
+    {v:'cta',l:'Request a quote or book a call in under 30 seconds',s:3},
+    {v:'none',l:"Honestly, our site doesn't do most of this well yet",s:0}]},
+  { id:'seo', dim:'Digital Presence', multi:true, text:'Where do you appear when a buyer searches for your product category?', opts:[
+    {v:'p1',l:'Our website ranks Page 1 for relevant buyer-intent keywords',s:8},
+    {v:'dirs',l:'We appear on directories — IndiaMART, Alibaba, Thomasnet',s:3},
+    {v:'li',l:'Our LinkedIn company page shows up in search results',s:4},
+    {v:'invisible',l:"We're not findable unless someone already knows our name",s:0}]},
+  { id:'content', dim:'Buyer Journey & Trust', multi:true, text:'What do you use to build credibility before a sales conversation?', layout:'grid-2', opts:[
+    {v:'casestudies',l:'Outcome-focused case studies',s:5},
+    {v:'certs',l:'Certifications as proof points, not just logos',s:4},
+    {v:'video',l:'Factory or process walkthroughs (video or virtual)',s:4},
+    {v:'specs',l:'Technical specs in buyer-friendly format',s:3},
+    {v:'tl',l:'Thought leadership — insights, white papers, trends',s:4},
+    {v:'none',l:'We rely on reputation — not much formal content',s:0}]},
+  { id:'discovery', dim:'Buyer Journey & Trust', multi:true, text:'When a new buyer enquires, what do they typically already know about you?', opts:[
+    {v:'cold',l:'Very little — referred or found us on a directory',s:1},
+    {v:'site',l:"They've seen our website but it doesn't do much heavy lifting",s:4},
+    {v:'educated',l:"They've read our content or followed us — arrive pre-educated",s:8},
+    {v:'shortlisted',l:'They reach out having already shortlisted us — cycle is shorter',s:12}]},
+  { id:'deck', dim:'Pipeline & Conversion', multi:true, text:'What does your sales material communicate to a new prospect?', opts:[
+    {v:'specs',l:'Primarily specs, capabilities, and what we make',s:2},
+    {v:'why',l:"A clear reason why we're the better choice over alternatives",s:5},
+    {v:'outcomes',l:'Buyer outcomes — cost savings, risk reduction, supply reliability',s:8},
+    {v:'tailored',l:'Tailored narratives for different sectors and buyer profiles',s:10}]},
+  { id:'nurture', dim:'Pipeline & Conversion', multi:true, text:'What happens to a qualified lead between first contact and a serious conversation?', opts:[
+    {v:'reactive',l:'We respond when they reach out — follow-up is reactive',s:0},
+    {v:'manual',l:"We follow up manually — but it's inconsistent",s:3},
+    {v:'content',l:'We send relevant content — case studies, specs, sector insights',s:7},
+    {v:'systematic',l:'A structured nurture system mapped to our 6–18 month sales cycle',s:12}]},
+  { id:'linkedin', dim:'Brand Authority', multi:true, text:"How would you describe your company's brand presence in target markets?", opts:[
+    {v:'unknown',l:'Largely unknown outside our existing customer network',s:0},
+    {v:'passive',l:"We have a presence, but we're not actively building authority",s:3},
+    {v:'active',l:'We regularly publish content and stay visible in our sector',s:7},
+    {v:'leader',l:'Buyers come to us — our brand creates inbound demand',s:12}]},
+  { id:'leadership', dim:'Brand Authority', multi:true, text:'How does your leadership engage publicly in your industry?', opts:[
+    {v:'none',l:"Our leadership isn't visible online — keeps a low profile",s:0},
+    {v:'profile',l:"LinkedIn profiles exist but aren't actively used for business",s:2},
+    {v:'shares',l:'Leadership shares updates and company milestones regularly',s:5},
+    {v:'tl',l:'MD/Founder publishes original perspectives that attract buyers',s:8}]},
+];
+
+const answers = {};
+let currentQ = 0;
+
+// ── RIPPLE ──
+function addRipple(el, e) {
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = el.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  el.appendChild(r);
+  setTimeout(()=>r.remove(),600);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── RENDER QUESTION ──
+function renderQ(idx, dir=1) {
+  const q = QUESTIONS[idx];
+  const stage = document.getElementById('qStage');
+
+  const existing = stage.querySelector('.q-card');
+  if (existing) {
+    existing.classList.add(dir>0?'exit-left':'exit-right');
+    setTimeout(()=>existing.remove(), 350);
+  }
+
+  const a = answers[q.id];
+  const selected = q.multi ? (a?.values||[]) : (a?.value ? [a.value] : []);
+  const hasOther = ['website','seo','discovery','deck','nurture','linkedin','leadership'].includes(q.id);
+
+  const optsHTML = q.opts.map(o => {
+    const sel = selected.includes(o.v);
+    const indicator = q.multi
+      ? `<div class="opt-check"><svg viewBox="0 0 13 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`
+      : `<div class="opt-radio"><div class="opt-radio-dot"></div></div>`;
+    return `<div class="opt${sel?' selected':''}" data-val="${o.v}" data-score="${o.s}" onclick="pickOpt(this,event,'${q.id}',${q.multi})">
+      <div class="opt-inner">${indicator}<span class="opt-label">${o.l}</span></div>
+    </div>`;
+  }).join('');
+
+  const card = document.createElement('div');
+  card.className = `q-card ${dir>0?'enter-right':'enter-left'}`;
+  card.innerHTML = `
+    <div class="q-meta">
+      <span class="q-num">${String(idx+1).padStart(2,'0')} / ${QUESTIONS.length}</span>
+      <span class="q-dim">${q.dim}</span>
+    </div>
+    <div class="q-text">${q.text}</div>
+    <div class="opts${q.layout?' '+q.layout:''}" id="opts-${q.id}">${optsHTML}</div>
+    ${hasOther?`<div class="other-wrap"><input type="text" class="other-input" id="other-${q.id}" placeholder="Anything to add? (optional)" value="${answers[q.id+'_other']||''}" oninput="answers['${q.id}_other']=this.value"/></div>`:''}
+    <div class="q-nav">
+      ${idx>0?`<button class="btn-back" onclick="goBack()">← Back</button>`:'<div></div>'}
+      <div style="text-align:right">
+        <div class="err-msg" id="err-${q.id}">Please make at least one selection.</div>
+        ${q.multi?`<button class="btn-next" onclick="goNext()">${idx===QUESTIONS.length-1?'Almost done →':'Continue →'}</button>`:''}
+      </div>
+    </div>`;
+
+  stage.appendChild(card);
+  // Trigger animation
+  requestAnimationFrame(()=>{ card.classList.remove('enter-right','enter-left'); card.classList.add('active'); });
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── PICK OPTION ──
+function pickOpt(el, e, id, multi) {
+  addRipple(el, e);
+  if (!multi) {
+    document.querySelectorAll(`#opts-${id} .opt`).forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[id] = { value: el.dataset.val, score: parseInt(el.dataset.score) };
+    setTimeout(()=>goNext(), 350);
+  } else {
+    const isSel = el.classList.contains('selected');
+    el.classList.toggle('selected', !isSel);
+    if (!answers[id]) answers[id] = { values:[], score:0 };
+    const sc = parseInt(el.dataset.score);
+    if (!isSel) {
+      if (!answers[id].values.includes(el.dataset.val)) {
+        answers[id].values.push(el.dataset.val);
+        answers[id].score += sc;
+      }
+    } else {
+      answers[id].values = answers[id].values.filter(v=>v!==el.dataset.val);
+      answers[id].score -= sc;
+    }
+  }
+}
+
+// ── NAV ──
+function goNext() {
+  const q = QUESTIONS[currentQ];
+  const err = document.getElementById(`err-${q.id}`);
+  if (err) err.classList.remove('show');
+  const valid = q.multi ? (answers[q.id]?.values?.length>0) : !!answers[q.id]?.value;
+  if (!valid) { if(err) err.classList.add('show'); return; }
+
+  if (currentQ < QUESTIONS.length-1) { currentQ++; renderQ(currentQ,1); }
+  else showContact();
+}
+
+function goBack() {
+  if (currentQ > 0) { currentQ--; renderQ(currentQ,-1); }
+}
+
+function backToQuiz() {
+  document.getElementById('contact').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  renderQ(currentQ,-1);
+}
+
+function updateProgress() {
+  document.getElementById('pFill').style.width = (currentQ/QUESTIONS.length*100)+'%';
+  document.getElementById('pLabel').textContent = `${currentQ+1} of ${QUESTIONS.length}`;
+}
+
+// ── START ──
+function startAudit() {
+  document.getElementById('hero').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  renderQ(0,1);
+  updateProgress();
+}
+
+// ── CONTACT ──
+function showContact() {
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('contact').style.display='block';
+  document.getElementById('pFill').style.width='95%';
+  document.getElementById('pLabel').textContent='Final step';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── SCORING ──
+function getScore(key) { return answers[key]?.score||0; }
+
+function calcDimensions() {
+  return {
+    digital: {label:'Digital Presence',     score:Math.min(getScore('website'),12)+Math.min(getScore('seo'),8),          max:20,color:'#0A66C2'},
+    content: {label:'Buyer Journey & Trust', score:Math.min(getScore('content'),20)+Math.min(getScore('discovery'),12),   max:32,color:'#6B46C1'},
+    sales:   {label:'Pipeline & Conversion', score:Math.min(getScore('deck'),10)+Math.min(getScore('nurture'),12),        max:22,color:'#0A8A5A'},
+    brand:   {label:'Brand Authority',       score:Math.min(getScore('linkedin'),12)+Math.min(getScore('leadership'),8),  max:20,color:'#E67E22'},
+  };
+}
+
+function calcTotal(dims) {
+  return Math.round(Object.values(dims).reduce((a,d)=>a+d.score,0)/Object.values(dims).reduce((a,d)=>a+d.max,0)*100);
+}
+
+function getGrade(s) {
+  if(s>=80) return {grade:'Market Leader',color:'#2ecc71'};
+  if(s>=60) return {grade:'Competitive',color:'#0A66C2'};
+  if(s>=40) return {grade:'Developing',color:'#E67E22'};
+  return {grade:'Critical Gap',color:'#e74c3c'};
+}
+
+function getVerdict(s,sector) {
+  const sl={medical:'medical device',oem:'OEM/auto ancillary',industrial:'industrial equipment',electronics:'electronics/EMS',pharma:'pharma/chemical',other:'manufacturing'}[sector]||'manufacturing';
+  if(s>=80) return `Your ${sl} business has strong digital foundations. Focus on compounding your lead in content depth and brand authority.`;
+  if(s>=60) return `You have the basics in place, but ${sl} buyers in the US and EU are likely choosing better-marketed competitors.`;
+  if(s>=40) return `Global buyers are finding you difficult to evaluate online. Your ${sl} expertise isn't reflected in your marketing presence.`;
+  return `You are largely invisible to global ${sl} buyers. Without urgent digital infrastructure, you're competing with one hand tied behind your back.`;
+}
+
+// ── FINDINGS ──
+function generateFindings(dims,score) {
+  const f=[]; const s=answers;
+  const ws=s.website?.values||[]; const ss=s.seo?.values||[];
+  const cs=s.content?.values||[]; const ds=s.discovery?.values||[];
+  const dk=s.deck?.values||[];   const ns=s.nurture?.values||[];
+  const li=s.linkedin?.values||[]; const ls=s.leadership?.values||[];
+
+  if(!ws.includes('proof')&&!cs.includes('casestudies')) f.push({severity:'critical',title:'No Proof of Capability — Your Biggest Blind Spot',body:"You have no case studies or visible proof of past work. Global buyers in regulated sectors need evidence before trusting a new supplier. This is the primary reason qualified leads go cold after an initial enquiry.",action:'→ Priority: Develop 2–3 outcome-focused case studies within 30 days.'});
+  if(!ws.includes('understand')||!ws.includes('cta')) f.push({severity:'critical',title:'Your Website Is Losing Deals Before Sales Starts',body:"Global procurement managers spend under 5 minutes evaluating a supplier website. A site that can't clearly communicate your offer and capture buyer intent is actively costing you pipeline.",action:'→ Priority: Rebuild your homepage around buyer clarity — not company history.'});
+  if(ss.includes('invisible')||(!ss.includes('p1')&&!ss.includes('li'))) f.push({severity:'critical',title:"You're Invisible Where Buyers Are Looking",body:"You're not findable through search. Buyers who discover you via Google already trust you more — directory listings commoditise your offer and erode margin. You're losing the pre-RFQ stage entirely.",action:'→ Priority: SEO strategy targeting buyer-intent keywords for your specific sector and markets.'});
+  if(ns.includes('reactive')||!ns.includes('systematic')) f.push({severity:'critical',title:'Your Follow-Up Process Is Leaving Revenue Behind',body:'Manufacturing purchase cycles run 6–18 months. Without a structured nurture system, you lose deals to competitors who stay top-of-mind. The average B2B manufacturing deal needs 8+ touchpoints before commitment.',action:'→ Priority: Build a 6-touch content sequence mapped to your sales cycle length.'});
+  if(li.includes('unknown')||li.includes('passive')) f.push({severity:'moderate',title:'Brand Invisibility in Your Target Markets',body:"73% of global B2B buyers verify a supplier on LinkedIn before sending an RFQ. If your brand isn't creating pull, you're relying entirely on outbound — which gets harder and more expensive every year.",action:'→ Priority: Establish a 90-day LinkedIn content calendar for company and leadership.'});
+  if(!cs.includes('certs')&&!ws.includes('creds')) f.push({severity:'moderate',title:'Certifications Are a Shortlist Criterion — Not a Footnote',body:"For medical devices, OEM, and regulated sectors, buyers assume you don't have certifications if they can't find them in 10 seconds. This is a simple fix with high conversion impact.",action:'→ Quick win: Display certifications prominently on your homepage and capability page.'});
+  if(dk.includes('specs')||!dk.includes('outcomes')) f.push({severity:'moderate',title:'Your Pitch Is Product-Out, Not Buyer-In',body:"Buyers don't buy your specs — they buy what your specs deliver for them. Reframing your materials around outcomes (cost reduction, supply reliability, quality) shortens sales cycles significantly.",action:'→ Priority: Rebuild your capability presentation around buyer outcomes per segment.'});
+  if(ds.includes('shortlisted')||ds.includes('educated')) f.push({severity:'strong',title:'Strong Buyer Pre-Education Pipeline',body:'Buyers arrive at your conversations already informed and shortlisted. This is a significant competitive advantage that shortens sales cycles and improves close rates.',action:'→ Opportunity: Double down on the content driving this and expand it to new target markets.'});
+  if(li.includes('leader')||li.includes('active')) f.push({severity:'strong',title:'Brand Authority Is Your Competitive Moat',body:'An active, credible brand presence puts you ahead of the vast majority of manufacturers targeting export markets. This compounds over time — protect and amplify it.',action:'→ Opportunity: Activate LinkedIn Ads to convert your organic authority into paid, qualified pipeline.'});
+  return f.slice(0,6);
+}
+
+// ── ACTIONS ──
+function generateActions() {
+  return [
+    {action:'Publish 3 outcome-focused case studies',                impact:'high',effort:'2–3 weeks',timeline:'Days 1–21'},
+    {action:'Rebuild homepage around buyer clarity and conversion',   impact:'high',effort:'6–8 weeks',timeline:'Days 1–60'},
+    {action:'Launch SEO for buyer-intent keywords in target markets', impact:'high',effort:'Ongoing',  timeline:'Days 1–90'},
+    {action:'Display certifications prominently on homepage',         impact:'high',effort:'1 day',    timeline:'Days 1–3'},
+    {action:'Build 6-touch nurture sequence mapped to sales cycle',   impact:'high',effort:'1 week',   timeline:'Days 14–21'},
+    {action:'Establish LinkedIn content calendar — 2× per week',      impact:'med', effort:'Ongoing',  timeline:'Days 7–90'},
+  ];
+}
+
+// ── RENDER REPORT ──
+function renderReport(totalScore) {
+  const dims=calcDimensions(); const {grade,color}=getGrade(totalScore); const sector=answers.sector?.value||'other';
+  document.getElementById('rptCompany').textContent=document.getElementById('company').value.trim();
+  document.getElementById('rptSub').textContent=`Global Buyer Visibility Audit · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}`;
+  document.getElementById('rptScore').textContent=totalScore;
+  document.getElementById('rptGrade').textContent=grade; document.getElementById('rptGrade').style.color=color;
+  document.getElementById('rptVerdict').textContent=getVerdict(totalScore,sector);
+
+  const arc=document.getElementById('ringArc'); arc.style.stroke=color;
+  setTimeout(()=>{arc.style.transition='stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1)';arc.style.strokeDashoffset=364.4-(totalScore/100)*364.4;},300);
+
+  const dg=document.getElementById('dimGrid'); dg.innerHTML='';
+  Object.values(dims).forEach(d=>{
+    const pct=Math.round((d.score/d.max)*100);
+    const sl=pct>=70?'Strong':pct>=40?'Needs Work':'Critical Gap';
+    const sc=pct>=70?'#2ecc71':pct>=40?'#E67E22':'#e74c3c';
+    dg.innerHTML+=`<div class="dim-card"><div class="dim-name">${d.label}</div><div class="dim-val" style="color:${d.color}">${pct}</div><div class="dim-bar"><div class="dim-fill" style="background:${d.color};width:${pct}%"></div></div><div class="dim-status" style="color:${sc}">${sl}</div></div>`;
+  });
+
+  const fw=document.getElementById('findingsWrap'); fw.innerHTML='';
+  generateFindings(dims,totalScore).forEach(f=>{
+    fw.innerHTML+=`<div class="finding ${f.severity}"><div class="finding-hd"><div class="finding-title">${f.title}</div><span class="pill pill-${f.severity}">${f.severity==='strong'?'Strength':f.severity==='critical'?'Critical':'Moderate'}</span></div><div class="finding-body">${f.body}</div><div class="finding-action">${f.action}</div></div>`;
+  });
+
+  const ab=document.getElementById('actionBody'); ab.innerHTML='';
+  generateActions().forEach((a,i)=>{
+    const ic=a.impact==='high'?'impact-high':'impact-med';
+    const il=a.impact==='high'?'High':'Medium';
+    ab.innerHTML+=`<tr><td style="color:rgba(255,255,255,.3);font-weight:700">${String(i+1).padStart(2,'0')}</td><td style="color:var(--white);font-weight:600">${a.action}</td><td><span class="${ic}">${il}</span></td><td><span class="effort-tag">${a.effort}</span></td><td style="color:rgba(255,255,255,.35)">${a.timeline}</td></tr>`;
+  });
+
+  document.getElementById('contact').style.display='none';
+  document.getElementById('report').style.display='block';
+  document.getElementById('pFill').style.width='100%';
+  document.getElementById('pLabel').textContent='Report ready';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── SUBMIT ──
+async function submitAudit() {
+  const err=document.getElementById('err-contact'); err.classList.remove('show');
+  const fname=document.getElementById('fname').value.trim();
+  const lname=document.getElementById('lname').value.trim();
+  const company=document.getElementById('company').value.trim();
+  const email=document.getElementById('email').value.trim();
+  if(!fname||!lname||!company||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.classList.add('show');return;}
+
+  const lo=document.getElementById('loading'); lo.style.display='flex';
+  ['ls0','ls1','ls2','ls3'].forEach((s,i)=>setTimeout(()=>{
+    ['ls0','ls1','ls2','ls3'].forEach(x=>document.getElementById(x).classList.remove('show'));
+    document.getElementById(s).classList.add('show');
+  },i*750));
+
+  const dims=calcDimensions(); const totalScore=calcTotal(dims);
+  const payload={
+    timestamp:new Date().toISOString(),firstName:fname,lastName:lname,company,email,
+    role:document.getElementById('role').value,
+    challenge:document.getElementById('challenge').value.trim(),
+    sector:answers.sector?.value,growthModel:answers.revenue?.value,
+    targetMarkets:answers.markets?.values?.join(', '),
+    websiteSelections:answers.website?.values?.join(', '),seoSelections:answers.seo?.values?.join(', '),
+    contentSelections:answers.content?.values?.join(', '),discoverySelections:answers.discovery?.values?.join(', '),
+    deckSelections:answers.deck?.values?.join(', '),nurtureSelections:answers.nurture?.values?.join(', '),
+    linkedinSelections:answers.linkedin?.values?.join(', '),leadershipSelections:answers.leadership?.values?.join(', '),
+    totalScore,grade:getGrade(totalScore).grade,
+    dimDigital:Math.round((dims.digital.score/dims.digital.max)*100),
+    dimContent:Math.round((dims.content.score/dims.content.max)*100),
+    dimSales:Math.round((dims.sales.score/dims.sales.max)*100),
+    dimBrand:Math.round((dims.brand.score/dims.brand.max)*100),
+  };
+  try{await fetch(SHEET_WEBHOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
+  setTimeout(()=>{lo.style.display='none';renderReport(totalScore);},3200);
+}
+</script>
+</body>
+</html>
